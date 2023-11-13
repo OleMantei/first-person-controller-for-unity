@@ -46,8 +46,8 @@ namespace DyrdaDev.FirstPersonController
         [SerializeField] private float stickToGroundForceMagnitude = 5f;
 
         [Header("Look Properties")]
-        [Range(-90, 0)] [SerializeField] private float minViewAngle = -60f;
-        [Range(0, 90)] [SerializeField] private float maxViewAngle = 60f;
+        [Range(-90, 0)][SerializeField] private float minViewAngle = -60f;
+        [Range(0, 90)][SerializeField] private float maxViewAngle = 60f;
 
         #endregion
 
@@ -89,27 +89,27 @@ namespace DyrdaDev.FirstPersonController
                 .Subscribe(i =>
                 {
                     var wasGrounded = _characterController.isGrounded;
-                    
+
                     // Vertical movement:
                     var verticalVelocity = 0f;
                     // The character is ...
                     if (i.Jump && wasGrounded)
                     {
                         // ... grounded and wants to jump.
-                        
+
                         verticalVelocity = jumpForceMagnitude;
                         _jumped.OnNext(Unit.Default);
                     }
                     else if (!wasGrounded)
                     {
                         // ... in the air.
-                        
+
                         verticalVelocity = _characterController.velocity.y + Physics.gravity.y * Time.deltaTime * 3.0f;
                     }
                     else
                     {
                         // ... otherwise grounded.
-                        
+
                         verticalVelocity = -Mathf.Abs(stickToGroundForceMagnitude);
                     }
 
@@ -118,10 +118,10 @@ namespace DyrdaDev.FirstPersonController
                     var horizontalVelocity = i.Move * currentSpeed; //Calculate velocity (direction * speed).
 
                     // Combine horizontal and vertical movement.
-                    var characterVelocity = transform.TransformVector(new Vector3(
+                    var characterVelocity = Quaternion.Euler(0, _camera.transform.eulerAngles.y, 0) * new Vector3(
                         horizontalVelocity.x,
                         verticalVelocity,
-                        horizontalVelocity.y));
+                        horizontalVelocity.y);
 
                     // Apply movement.
                     var motion = characterVelocity * Time.deltaTime;
@@ -153,7 +153,7 @@ namespace DyrdaDev.FirstPersonController
             if (!wasGrounded && isGrounded)
             {
                 // The character was airborne at the beginning, but grounded at the end of this frame.
-                
+
                 _landed.OnNext(Unit.Default);
             }
 
@@ -163,7 +163,7 @@ namespace DyrdaDev.FirstPersonController
         private void HandleSteppedCharacterSignal()
         {
             // Emit stepped events:
-            
+
             var stepDistance = 0f;
             Moved.Subscribe(w =>
             {
@@ -193,7 +193,7 @@ namespace DyrdaDev.FirstPersonController
                     // Vertical look with rotation around the horizontal axis, where + means upwards.
                     var verticalLook = inputLook.y * Vector3.left * Time.deltaTime;
                     var newQ = _camera.transform.localRotation * Quaternion.Euler(verticalLook);
-                    
+
                     _camera.transform.localRotation =
                         RotationTools.ClampRotationAroundXAxis(newQ, -maxViewAngle, -minViewAngle);
                 }).AddTo(this);
